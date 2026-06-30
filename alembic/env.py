@@ -15,17 +15,18 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from core.config import settings
 from core.database import Base
 
-# Import all models here so Alembic can detect them via Base.metadata
-from models.user import User  # noqa
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
+from models.user import User  
+from models.tenant import Tenant
+from models.otp_verification import OTPVerification
+from models.refresh_token import RefreshToken
+
+
 config = context.config
 
-# Set the sqlalchemy.url dynamically from our app settings
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
-# Interpret the config file for Python logging.
+
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 

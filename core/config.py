@@ -16,11 +16,36 @@ class Settings(BaseSettings):
     DB_PASSWORD: str
     DB_NAME: str
 
-    # JWT
-    SECRET_KEY: str
+    # JWT -Access Token
+    ACCESS_TOKEN_SECRET_KEY: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 20
+
+    #JWT - Refresh Token
+    REFRESH_TOKEN_SECRET_KEY: str
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+    #JWT - OTP Token
+    OTP_TOKEN_SECRET_KEY: str
+    OTP_TOKEN_EXPIRE_MINUTES: int = 5
+
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
-   
+
+    #OTP settings
+    OTP_LENGTH: int = 6
+    OTP_MAX_RETRY: int = 5
+    
+    #Cookie settings
+    COOKIE_SECURE: bool = False
+    COOKIE_SAMESITE: str = "lax"
+
+    # SMTP
+    SMTP_HOST: str
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str
+    SMTP_PASSWORD: str
+    SMTP_FROM_EMAIL: str = "noreply@fastapiapp.com"
+
+
     #  CORS
     ALLOWED_ORIGINS: str =""
 

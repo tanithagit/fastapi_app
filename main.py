@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from core.config import settings
+import models
 from routes import (
     auth,
     users,
@@ -66,6 +67,7 @@ async def not_found_handler(request: Request, exc):
         content={"detail": "Resource not found"},
     )
 
+app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
 
 # ---------------------------
 # Health & Version endpoints
