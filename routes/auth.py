@@ -39,6 +39,7 @@ router = APIRouter()
 @router.post("/register", 
              response_model=RegisterResponse,
              status_code=status.HTTP_201_CREATED,
+             tags=["Authentication APIs"],
              responses={
                  409: {"description": "An account with this email already exists."},
                  422: {"description": "Validation error - password policy, mismatched passwords, or missing organization name."},
@@ -103,6 +104,7 @@ def register(payload: RegisterRequest, response: Response, db: Session = Depends
 @router.post(
     "/verify-otp", 
      response_model=VerifyOTPResponse,
+     tags=["Authentication APIs"],
      responses={
          400: {"description": "Invalid OTP, expired OTP, invalid token purpose, or no pending registration found."},
          401: {"description": "OTP session cookie missing, invalid, or expired."},
@@ -221,6 +223,7 @@ def verify_otp(
 @router.post(
     "/resend-otp", 
     response_model=ResendOTPResponse,
+    tags=["Authentication APIs"],
     responses={
         400: {"description": "No pending verification found."},
         401: {"description": "OTP session cookie missing, invalid, or expired."},
@@ -303,6 +306,7 @@ def resend_otp(
 @router.post(
     "/login", 
     response_model=LoginResponse,
+    tags=["Authentication APIs"],
     responses={
         401: {"description": "Invalid email or password."},
         403: {"description": "Account is not active."},
@@ -372,6 +376,7 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
 @router.post(
     "/logout", 
     response_model=LogoutResponse,
+    tags=["Authentication APIs"],
 )
 def logout(
     request: Request, 
@@ -402,6 +407,7 @@ def logout(
 @router.post(
     "/refresh-token", 
     response_model=RefreshTokenResponse,
+    tags=["Authentication APIs"],
     responses={
         401: {"description": "Refresh token missing, invalid, expired, or revoked."},
         403: {"description": "Account is not active."},
@@ -499,6 +505,7 @@ def refresh_token_endpoint(
 @router.post(
     "/forgot-password", 
     response_model=ForgotPasswordResponse,
+    tags=["Password Management APIs"],
 )
 def forgot_password(payload: ForgotPasswordRequest, response: Response, db: Session = Depends(get_db)):
     # 1. Check the user exists. We still return a generic success message either way
@@ -556,6 +563,7 @@ def forgot_password(payload: ForgotPasswordRequest, response: Response, db: Sess
 @router.post(
     "/verify-forgot-otp", 
     response_model=VerifyForgotOTPResponse,
+    tags=["Password Management APIs"],
     responses={
         400: {"description": "Invalid OTP, expired OTP, invalid token purpose, or no pending reset request found."},
         401: {"description": "OTP session cookie missing, invalid, or expired."},
@@ -647,6 +655,7 @@ def verify_forgot_otp(
 @router.post(
         "/reset-password", 
         response_model=ResetPasswordResponse,
+        tags=["Password Management APIs"],
         responses={
         400: {"description": "OTP verification step has not been completed."},
         401: {"description": "OTP session cookie missing, invalid, or expired."},

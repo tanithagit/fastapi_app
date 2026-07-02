@@ -67,7 +67,7 @@ async def not_found_handler(request: Request, exc):
         content={"detail": "Resource not found"},
     )
 
-app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
+app.include_router(auth.router, prefix="/api/auth")
 
 # ---------------------------
 # Health & Version endpoints
