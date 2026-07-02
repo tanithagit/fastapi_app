@@ -1,7 +1,7 @@
 from models.otp_verification import OTPVerification
 
 
-def _register_verify_and_login(client, db_session, email="logintest@example.com", password="Test@1234"):
+def _register_verify_and_login(client, db_session, email="logintest@gmail.com", password="Test@1234"):
     """Helper: full registration + OTP verification + login, returns the login response."""
     client.post(
         "/api/auth/register",
@@ -28,16 +28,16 @@ def test_login_success(client, db_session):
     response = _register_verify_and_login(client, db_session)
     assert response.status_code == 200
     body = response.json()
-    assert body["email"] == "logintest@example.com"
+    assert body["email"] == "logintest@gmail.com"
     assert "access_token" in response.cookies
     assert "refresh_token" in response.cookies
 
 
 def test_login_wrong_password_rejected(client, db_session):
-    _register_verify_and_login(client, db_session, email="wrongpwlogin@example.com")
+    _register_verify_and_login(client, db_session, email="wrongpwlogin@gmail.com")
     response = client.post(
         "/api/auth/login",
-        json={"email": "wrongpwlogin@example.com", "password": "WrongPassword123!"},
+        json={"email": "wrongpwlogin@gmail.com", "password": "WrongPassword123!"},
     )
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid email or password."
@@ -58,7 +58,7 @@ def test_login_unverified_account_rejected(client):
         "/api/auth/register",
         json={
             "full_name": "Unverified User",
-            "email": "unverified@example.com",
+            "email": "unverified@gmail.com",
             "password": "Test@1234",
             "confirm_password": "Test@1234",
             "account_type": "individual",
@@ -66,13 +66,13 @@ def test_login_unverified_account_rejected(client):
     )
     response = client.post(
         "/api/auth/login",
-        json={"email": "unverified@example.com", "password": "Test@1234"},
+        json={"email": "unverified@gmail.com", "password": "Test@1234"},
     )
     assert response.status_code == 401
 
 
 def test_logout_clears_cookies_and_revokes_token(client, db_session):
-    _register_verify_and_login(client, db_session, email="logouttest@example.com")
+    _register_verify_and_login(client, db_session, email="logouttest@gmail.com")
 
     response = client.post("/api/auth/logout")
     assert response.status_code == 200
@@ -80,7 +80,7 @@ def test_logout_clears_cookies_and_revokes_token(client, db_session):
 
     from models.refresh_token import RefreshToken
     from models.user import User
-    user = db_session.query(User).filter(User.email == "logouttest@example.com").first()
+    user = db_session.query(User).filter(User.email == "logouttest@gmail.com").first()
     token_record = (
         db_session.query(RefreshToken)
         .filter(RefreshToken.user_id == user.id)
@@ -91,7 +91,7 @@ def test_logout_clears_cookies_and_revokes_token(client, db_session):
 
 
 def test_logout_twice_is_graceful(client, db_session):
-    _register_verify_and_login(client, db_session, email="doublelogout@example.com")
+    _register_verify_and_login(client, db_session, email="doublelogout@gmail.com")
     first = client.post("/api/auth/logout")
     second = client.post("/api/auth/logout")
     assert first.status_code == 200
@@ -99,7 +99,7 @@ def test_logout_twice_is_graceful(client, db_session):
 
 
 def test_refresh_token_rotates_and_old_token_rejected(client, db_session):
-    _register_verify_and_login(client, db_session, email="refreshtest@example.com")
+    _register_verify_and_login(client, db_session, email="refreshtest@gmail.com")
 
     # Capture the old refresh_token cookie value before refreshing
     old_refresh_token = client.cookies.get("refresh_token")

@@ -1,9 +1,10 @@
 def test_register_individual_success(client):
+    # Individual with personal email - should succeed
     response = client.post(
         "/api/auth/register",
         json={
             "full_name": "John Doe",
-            "email": "john@example.com",
+            "email": "john@gmail.com",
             "password": "Test@1234",
             "confirm_password": "Test@1234",
             "account_type": "individual",
@@ -11,13 +12,45 @@ def test_register_individual_success(client):
     )
     assert response.status_code == 201
     body = response.json()
-    assert body["email"] == "john@example.com"
+    assert body["email"] == "john@gmail.com"
     assert "OTP sent" in body["message"]
-    # Confirm the otp_token cookie was set
     assert "otp_token" in response.cookies
 
 
+def test_register_individual_yahoo_email_success(client):
+    # Individual with yahoo email - should succeed
+    response = client.post(
+        "/api/auth/register",
+        json={
+            "full_name": "Jane Doe",
+            "email": "jane@yahoo.com",
+            "password": "Test@1234",
+            "confirm_password": "Test@1234",
+            "account_type": "individual",
+        },
+    )
+    assert response.status_code == 201
+    assert response.json()["email"] == "jane@yahoo.com"
+
+
+def test_register_individual_business_email_rejected(client):
+    # Individual with business email - should be rejected
+    response = client.post(
+        "/api/auth/register",
+        json={
+            "full_name": "Test User",
+            "email": "admin@company.com",
+            "password": "Test@1234",
+            "confirm_password": "Test@1234",
+            "account_type": "individual",
+        },
+    )
+    assert response.status_code == 422
+    assert "personal email" in response.json()["detail"][0]["msg"].lower()
+
+
 def test_register_organization_success(client):
+    # Organization with business email - should succeed
     response = client.post(
         "/api/auth/register",
         json={
@@ -33,14 +66,30 @@ def test_register_organization_success(client):
     assert response.json()["email"] == "owner@mycompany.com"
 
 
+def test_register_organization_personal_email_rejected(client):
+    # Organization with Gmail - should be rejected
+    response = client.post(
+        "/api/auth/register",
+        json={
+            "full_name": "Test User",
+            "email": "test@gmail.com",
+            "password": "Test@1234",
+            "confirm_password": "Test@1234",
+            "account_type": "organization",
+            "organization_name": "Some Org",
+        },
+    )
+    assert response.status_code == 422
+    assert "business email" in response.json()["detail"][0]["msg"].lower()
+
+
 def test_register_duplicate_email_rejected(client, db_session):
-    # First, create and verify a real user directly in the DB
     from core.security import hash_password
     from models.user import User, AccountType
 
     existing_user = User(
         full_name="Existing User",
-        email="duplicate@example.com",
+        email="duplicate@gmail.com",
         password_hash=hash_password("Test@1234"),
         account_type=AccountType.INDIVIDUAL,
         is_active=True,
@@ -48,12 +97,11 @@ def test_register_duplicate_email_rejected(client, db_session):
     db_session.add(existing_user)
     db_session.commit()
 
-    # Now try to register again with the same email
     response = client.post(
         "/api/auth/register",
         json={
             "full_name": "Someone Else",
-            "email": "duplicate@example.com",
+            "email": "duplicate@gmail.com",
             "password": "Test@1234",
             "confirm_password": "Test@1234",
             "account_type": "individual",
@@ -68,7 +116,7 @@ def test_register_password_mismatch_rejected(client):
         "/api/auth/register",
         json={
             "full_name": "Test User",
-            "email": "mismatch@example.com",
+            "email": "mismatch@gmail.com",
             "password": "Test@1234",
             "confirm_password": "Different@123",
             "account_type": "individual",
@@ -82,7 +130,7 @@ def test_register_weak_password_rejected(client):
         "/api/auth/register",
         json={
             "full_name": "Test User",
-            "email": "weakpw@example.com",
+            "email": "weakpw@gmail.com",
             "password": "abc123",
             "confirm_password": "abc123",
             "account_type": "individual",
@@ -100,21 +148,6 @@ def test_register_organization_missing_name_rejected(client):
             "password": "Test@1234",
             "confirm_password": "Test@1234",
             "account_type": "organization",
-        },
-    )
-    assert response.status_code == 422
-
-
-def test_register_organization_free_email_rejected(client):
-    response = client.post(
-        "/api/auth/register",
-        json={
-            "full_name": "Test User",
-            "email": "test@gmail.com",
-            "password": "Test@1234",
-            "confirm_password": "Test@1234",
-            "account_type": "organization",
-            "organization_name": "Some Org",
         },
     )
     assert response.status_code == 422

@@ -10,6 +10,10 @@ FREE_EMAIL_DOMAINS = {
     "rediffmail.com", "icould.com", "aol.com", "protonmail.com",
 }
 
+ACCEPTED_PERSONAL_DOMAINS = {
+    "gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com",
+}
+
 class RegisterRequest(BaseModel):
     full_name: str
     email: EmailStr
@@ -37,6 +41,32 @@ class RegisterRequest(BaseModel):
         errors = validate_password_policy(self.password)
         if errors:
             raise ValueError("".join(errors))
+        return self
+    
+    @model_validator(mode="after")
+    def validate_email_by_account_type(self) -> "RegisterRequest":
+        domain = self.email.split("@")[-1].lower()
+
+        if self.account_type == AccountType.INDIVIDUAL:
+            # Individual accounts MUST use a personal/free email provider
+            if domain not in ACCEPTED_PERSONAL_DOMAINS:
+                raise ValueError(
+                    "Individual accounts must use a personal email address "
+                    "(e.g. @gmail.com, @yahoo.com, @outlook.com, @hotmail.com, @icloud.com)."
+                )
+
+        elif self.account_type == AccountType.ORGANIZATION:
+            # Organization accounts MUST use an official business email
+            if not self.organization_name or not self.organization_name.strip():
+                raise ValueError(
+                    "Organization Name is required for Organization accounts."
+                )
+            if domain in FREE_EMAIL_DOMAINS:
+                raise ValueError(
+                    "Organization accounts must use an official business email address "
+                    "(e.g. @yourcompany.com). Personal email providers are not accepted."
+                )
+
         return self
 
     @model_validator(mode="after")

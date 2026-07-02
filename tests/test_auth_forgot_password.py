@@ -1,7 +1,7 @@
 from models.otp_verification import OTPVerification, OTPPurpose
 
 
-def _register_and_verify(client, db_session, email="forgotpw@example.com", password="Test@1234"):
+def _register_and_verify(client, db_session, email="forgotpw@gmail.com", password="Test@1234"):
     """Helper: full registration + OTP verification, returns nothing (user now exists)."""
     client.post(
         "/api/auth/register",
@@ -24,7 +24,7 @@ def _register_and_verify(client, db_session, email="forgotpw@example.com", passw
 
 def test_forgot_password_existing_email_returns_generic_message(client, db_session):
     _register_and_verify(client, db_session)
-    response = client.post("/api/auth/forgot-password", json={"email": "forgotpw@example.com"})
+    response = client.post("/api/auth/forgot-password", json={"email": "forgotpw@gmail.com"})
     assert response.status_code == 200
     assert "otp_token" in response.cookies
 
@@ -37,7 +37,7 @@ def test_forgot_password_nonexistent_email_returns_same_generic_message(client):
 
 
 def test_full_forgot_password_flow_changes_password(client, db_session):
-    email = "fullflow@example.com"
+    email = "fullflow@gmail.com"
     old_password = "Test@1234"
     new_password = "NewSecure@123"
 
@@ -73,7 +73,7 @@ def test_full_forgot_password_flow_changes_password(client, db_session):
 
 
 def test_reset_password_revokes_all_existing_sessions(client, db_session):
-    email = "revoketest@example.com"
+    email = "revoketest@gmail.com"
     old_password = "Test@1234"
     new_password = "NewSecure@123"
 
@@ -108,7 +108,7 @@ def test_reset_password_revokes_all_existing_sessions(client, db_session):
 
 
 def test_reset_password_without_verified_otp_rejected(client, db_session):
-    email = "noverify@example.com"
+    email = "noverify@gmail.com"
     _register_and_verify(client, db_session, email=email)
 
     # Call forgot-password to get a cookie, but skip verify-forgot-otp

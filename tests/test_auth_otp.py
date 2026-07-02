@@ -1,7 +1,7 @@
 from models.otp_verification import OTPVerification, OTPPurpose
 
 
-def _register_and_get_otp(client, db_session, email="otptest@example.com"):
+def _register_and_get_otp(client, db_session, email="otptest@gmail.com"):
     """Helper: registers a user and returns the real OTP from the DB."""
     response = client.post(
         "/api/auth/register",
@@ -30,11 +30,11 @@ def test_verify_otp_success_creates_user(client, db_session):
     verify_response = client.post("/api/auth/verify-otp", json={"otp": real_otp})
     assert verify_response.status_code == 200
     body = verify_response.json()
-    assert body["email"] == "otptest@example.com"
+    assert body["email"] == "otptest@gmail.com"
     assert body["account_type"] == "individual"
 
     from models.user import User
-    user = db_session.query(User).filter(User.email == "otptest@example.com").first()
+    user = db_session.query(User).filter(User.email == "otptest@gmail.com").first()
     assert user is not None
     assert user.is_active is True
 
@@ -73,7 +73,7 @@ def test_verify_otp_organization_creates_tenant(client, db_session):
 
 
 def test_verify_otp_wrong_code_rejected(client, db_session):
-    _register_and_get_otp(client, db_session, email="wrongotp@example.com")
+    _register_and_get_otp(client, db_session, email="wrongotp@gmail.com")
 
     response = client.post("/api/auth/verify-otp", json={"otp": "000000"})
     # Guard against the unlikely case the real OTP IS 000000
@@ -84,7 +84,7 @@ def test_verify_otp_wrong_code_rejected(client, db_session):
 
 
 def test_verify_otp_max_retry_exceeded(client, db_session):
-    _register_and_get_otp(client, db_session, email="maxretry@example.com")
+    _register_and_get_otp(client, db_session, email="maxretry@gmail.com")
 
     # Submit 5 wrong attempts (OTP_MAX_RETRY default = 5)
     for _ in range(5):
@@ -104,14 +104,14 @@ def test_verify_otp_no_cookie_rejected(client):
 
 
 def test_resend_otp_issues_new_code(client, db_session):
-    _, original_otp = _register_and_get_otp(client, db_session, email="resendtest@example.com")
+    _, original_otp = _register_and_get_otp(client, db_session, email="resendtest@gmail.com")
 
     response = client.post("/api/auth/resend-otp")
     assert response.status_code == 200
 
     otp_record = (
         db_session.query(OTPVerification)
-        .filter(OTPVerification.email == "resendtest@example.com")
+        .filter(OTPVerification.email == "resendtest@gmail.com")
         .order_by(OTPVerification.id.desc())
         .first()
     )
